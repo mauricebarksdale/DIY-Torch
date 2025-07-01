@@ -6,4 +6,4 @@ class Parameter:
         self.grad = np.zeros_like(data)
 
     def zero_grad(self):
-        self.grad = np.zeros_like(data)
+        self.grad = np.zeros_like(self.data)
