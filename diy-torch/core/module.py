@@ -62,6 +62,37 @@ class Module:
         """
         raise NotImplementedError
 
+    def backward(self, grad_output):
+        """
+        Define the backward pass computation of the module.
+        
+        This method should be implemented by subclasses to define how gradients
+        are computed and propagated backward through the module. This is essential
+        for automatic differentiation and gradient-based optimization.
+        
+        Args:
+            grad_output: Gradient of the loss with respect to the module's output.
+                        The exact type and shape depend on the specific module implementation.
+        
+        Returns:
+            Gradient of the loss with respect to the module's input(s).
+            The return type and shape depend on the specific module implementation.
+        
+        Raises:
+            NotImplementedError: This base implementation must be overridden by subclasses
+                                that need gradient computation.
+        
+        Note:
+            Not all modules need to implement backward() - for example, loss functions
+            typically only need forward(). Only implement this for modules that need
+            to propagate gradients to previous layers.
+        
+        Example:
+            In a Linear layer: computes gradients w.r.t weights, bias, and input.
+            In an activation layer: computes gradients w.r.t input using chain rule.
+        """
+        raise NotImplementedError("Modules that need gradient computation must implement backward()")
+
     def __call__(self, *inputs):
         """
         Make the module callable as a function.

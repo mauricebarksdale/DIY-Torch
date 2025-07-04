@@ -36,6 +36,7 @@ class Tanh(Module):
         We only call the parent constructor to set up the basic Module structure.
         """
         super().__init__()
+        self.output = None  # Store output for backward pass
 
     def forward(self, *inputs):
         """
@@ -71,9 +72,43 @@ class Tanh(Module):
             raise ValueError("Tanh expects exactly one input tensor")
         
         x = inputs[0]
-        output = np.tanh(x)
+        self.output = np.tanh(x)  # Store output for backward pass
         
-        return output
+        return self.output
+    
+    def backward(self, grad_output):
+        """
+        Perform the backward pass of the Tanh activation function.
+        
+        The derivative of Tanh is:
+        d/dx tanh(x) = 1 - tanh²(x)
+        
+        This is computed efficiently using the stored output from the forward pass,
+        avoiding the need to recompute the expensive hyperbolic tangent operations.
+        
+        Args:
+            grad_output (np.ndarray): Gradient of loss with respect to Tanh output.
+                                    Same shape as the input/output.
+        
+        Returns:
+            np.ndarray: Gradient of loss with respect to Tanh input.
+                       Same shape as input.
+        
+        Example:
+            >>> tanh = Tanh()
+            >>> x = np.array([[0.0, 1.0, -1.0]])
+            >>> y = tanh.forward(x)  # [[0.0, 0.76, -0.76]]
+            >>> grad_out = np.array([[1.0, 1.0, 1.0]])
+            >>> grad_in = tanh.backward(grad_out)  # [[1.0, 0.42, 0.42]]
+        """
+        if self.output is None:
+            raise ValueError("Must call forward() before backward()")
+        
+        # Tanh derivative: 1 - tanh²(x)
+        # Use stored output to avoid recomputing expensive hyperbolic tangent
+        grad_input = grad_output * (1 - self.output**2)
+        
+        return grad_input
     
     def __repr__(self):
         """

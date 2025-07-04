@@ -29,6 +29,7 @@ class ReLU(Module):
         We only call the parent constructor to set up the basic Module structure.
         """
         super().__init__()
+        self.input = None  # Store input for backward pass
 
     def forward(self, *inputs):
         """
@@ -55,9 +56,49 @@ class ReLU(Module):
             raise ValueError("ReLU expects exactly one input tensor")
         
         x = inputs[0]
+        self.input = x  # Store input for backward pass
         output = np.maximum(0.0, x)
         
         return output
+    
+    def backward(self, grad_output):
+        """
+        Perform the backward pass of the ReLU activation function.
+        
+        The derivative of ReLU is:
+        - 1 if input > 0
+        - 0 if input <= 0
+        
+        This creates a binary mask that passes gradients through for positive
+        inputs and blocks gradients for negative inputs.
+        
+        Args:
+            grad_output (np.ndarray): Gradient of loss with respect to ReLU output.
+                                    Same shape as the input/output.
+        
+        Returns:
+            np.ndarray: Gradient of loss with respect to ReLU input.
+                       Same shape as input. Elements are either grad_output (if input > 0)
+                       or 0 (if input <= 0).
+        
+        Example:
+            >>> relu = ReLU()
+            >>> x = np.array([[-1.0, 0.0, 1.0, 2.0]])
+            >>> y = relu.forward(x)  # [[0.0, 0.0, 1.0, 2.0]]
+            >>> grad_out = np.array([[1.0, 1.0, 1.0, 1.0]])
+            >>> grad_in = relu.backward(grad_out)  # [[0.0, 0.0, 1.0, 1.0]]
+        """
+        if self.input is None:
+            raise ValueError("Must call forward() before backward()")
+        
+        # ReLU derivative: 1 if input > 0, else 0
+        # This creates a mask that passes gradients through for positive inputs
+        mask = (self.input > 0).astype(np.float32)
+        
+        # Element-wise multiplication: pass gradient through where input was positive
+        grad_input = grad_output * mask
+        
+        return grad_input
     
     def __repr__(self):
         """

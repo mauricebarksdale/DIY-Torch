@@ -59,6 +59,7 @@ class Linear(Module):
         
         self.input_features = input_features
         self.output_features = output_features
+        self.input = None  # Store input for backward pass
         
         std = np.sqrt(1.0 / input_features)
         self.weight = Parameter(np.random.randn(output_features, input_features) * std)
@@ -99,6 +100,7 @@ class Linear(Module):
             raise ValueError("Linear layer expects exactly one input matrix")
         
         x = inputs[0]
+        self.input = x  # Store input for backward pass
         output = x @ self.weight.data.T
         
         # Add bias if present
@@ -106,6 +108,80 @@ class Linear(Module):
             output = output + self.bias.data
             
         return output
+
+    def backward(self, grad_output):
+        """
+        Perform the backward pass of the linear layer.
+        
+        This method computes gradients with respect to the layer's parameters
+        (weights and bias) and propagates gradients back to the input for the
+        chain rule in backpropagation.
+        
+        Mathematical derivation:
+        - Forward: y = x @ W^T + b
+        - grad_weight = x^T @ grad_output  (accumulated)
+        - grad_bias = sum(grad_output, axis=0)  (accumulated)
+        - grad_input = grad_output @ W  (returned for chain rule)
+        
+        Args:
+            grad_output (np.ndarray): Gradient of loss with respect to layer output.
+                                    Shape: (batch_size, output_features) or (output_features,)
+        
+        Returns:
+            np.ndarray: Gradient of loss with respect to layer input.
+                       Shape matches self.input. Used for backprop to previous layers.
+        
+        Side Effects:
+            - Accumulates gradients in self.weight.grad
+            - Accumulates gradients in self.bias.grad (if bias exists)
+        
+        Example:
+            >>> layer = Linear(10, 5)
+            >>> x = np.random.randn(32, 10)
+            >>> y = layer.forward(x)
+            >>> grad_out = np.random.randn(32, 5)  # Gradient from next layer
+            >>> grad_in = layer.backward(grad_out)  # Shape: (32, 10)
+            >>> print(layer.weight.grad.shape)     # (5, 10)
+            >>> print(layer.bias.grad.shape)       # (5,)
+        """
+        if self.input is None:
+            raise ValueError("Must call forward() before backward()")
+        
+        # Handle both batch and single sample cases
+        if grad_output.ndim == 1:
+            grad_output = grad_output.reshape(1, -1)
+            single_sample = True
+        else:
+            single_sample = False
+        
+        if self.input.ndim == 1:
+            input_batch = self.input.reshape(1, -1)
+        else:
+            input_batch = self.input
+        
+        # Compute gradient w.r.t weights: dL/dW = x^T @ grad_output
+        # Weight shape: (output_features, input_features)
+        # grad_output shape: (batch_size, output_features)  
+        # input shape: (batch_size, input_features)
+        grad_weight = grad_output.T @ input_batch  # Shape: (output_features, input_features)
+        
+        # Accumulate gradients (don't overwrite - gradients accumulate across batches)
+        self.weight.grad += grad_weight
+        
+        # Compute gradient w.r.t bias: dL/db = sum(grad_output, axis=0)
+        if self.bias is not None:
+            grad_bias = grad_output.sum(axis=0)  # Shape: (output_features,)
+            self.bias.grad += grad_bias
+        
+        # Compute gradient w.r.t input: dL/dx = grad_output @ W
+        # This is passed back to the previous layer
+        grad_input = grad_output @ self.weight.data  # Shape: (batch_size, input_features)
+        
+        # Return to original shape if single sample
+        if single_sample:
+            grad_input = grad_input.reshape(-1)
+        
+        return grad_input
 
     def __repr__(self):
         """

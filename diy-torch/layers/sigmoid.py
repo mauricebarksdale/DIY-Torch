@@ -35,6 +35,7 @@ class Sigmoid(Module):
         We only call the parent constructor to set up the basic Module structure.
         """
         super().__init__()
+        self.output = None  # Store output for backward pass
 
     def forward(self, *inputs):
         """
@@ -70,9 +71,43 @@ class Sigmoid(Module):
             raise ValueError("Sigmoid expects exactly one input tensor")
         
         x = inputs[0]
-        output = 1 / (1 + np.exp(-x))
+        self.output = 1 / (1 + np.exp(-x))  # Store output for backward pass
         
-        return output
+        return self.output
+    
+    def backward(self, grad_output):
+        """
+        Perform the backward pass of the Sigmoid activation function.
+        
+        The derivative of Sigmoid is:
+        d/dx sigmoid(x) = sigmoid(x) * (1 - sigmoid(x))
+        
+        This is computed efficiently using the stored output from the forward pass,
+        avoiding the need to recompute the expensive exponential operations.
+        
+        Args:
+            grad_output (np.ndarray): Gradient of loss with respect to Sigmoid output.
+                                    Same shape as the input/output.
+        
+        Returns:
+            np.ndarray: Gradient of loss with respect to Sigmoid input.
+                       Same shape as input.
+        
+        Example:
+            >>> sigmoid = Sigmoid()
+            >>> x = np.array([[0.0, 1.0, -1.0]])
+            >>> y = sigmoid.forward(x)  # [[0.5, 0.73, 0.27]]
+            >>> grad_out = np.array([[1.0, 1.0, 1.0]])
+            >>> grad_in = sigmoid.backward(grad_out)  # [[0.25, 0.196, 0.196]]
+        """
+        if self.output is None:
+            raise ValueError("Must call forward() before backward()")
+        
+        # Sigmoid derivative: sigmoid(x) * (1 - sigmoid(x))
+        # Use stored output to avoid recomputing expensive exponentials
+        grad_input = grad_output * self.output * (1 - self.output)
+        
+        return grad_input
     
     def __repr__(self):
         """
