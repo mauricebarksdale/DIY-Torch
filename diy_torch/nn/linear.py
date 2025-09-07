@@ -1,6 +1,6 @@
 import numpy as np
-from core.module import Module
-from core.parameter import Parameter
+from diy_torch.nn.module import Module
+from diy_torch.nn.parameter import Parameter
 
 class Linear(Module):
     """

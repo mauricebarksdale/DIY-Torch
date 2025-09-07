@@ -1,5 +1,5 @@
 import numpy as np
-from core.module import Module
+from diy_torch.nn.module import Module
 
 class Tanh(Module):
     """

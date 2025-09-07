@@ -1,5 +1,5 @@
 import numpy as np
-from .loss import Loss
+from diy_torch.nn.loss import Loss
 
 class MSE(Loss):
     """
@@ -78,4 +78,3 @@ class MSE(Loss):
         gradient = 2.0 * (self.target - self.prediction) / n
         
         return gradient
-        

@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from core.module import Module
+from diy_torch.nn.module import Module
 
 class Sequential(Module):
     """

@@ -1,5 +1,5 @@
 import numpy as np
-from .optim import Optimizer
+from diy_torch.nn.optim import Optimizer
 
 class SGD(Optimizer):
     """
