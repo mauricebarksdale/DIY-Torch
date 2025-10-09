@@ -90,12 +90,10 @@ class ReLU(Module):
         """
         if self.input is None:
             raise ValueError("Must call forward() before backward()")
-        
-        # ReLU derivative: 1 if input > 0, else 0
-        # This creates a mask that passes gradients through for positive inputs
+
         mask = (self.input > 0).astype(np.float32)
         
-        # Element-wise multiplication: pass gradient through where input was positive
+        # Pass gradient through where input was positive; negatives get zeroed out
         grad_input = grad_output * mask
         
         return grad_input

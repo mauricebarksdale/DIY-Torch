@@ -165,7 +165,6 @@ class Linear(Module):
         # input shape: (batch_size, input_features)
         grad_weight = grad_output.T @ input_batch  # Shape: (output_features, input_features)
         
-        # Accumulate gradients (don't overwrite - gradients accumulate across batches)
         self.weight.grad += grad_weight
         
         # Compute gradient w.r.t bias: dL/db = sum(grad_output, axis=0)

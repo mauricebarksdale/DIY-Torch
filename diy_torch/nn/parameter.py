@@ -51,6 +51,30 @@ class Parameter:
         self.data = data.astype(np.float32)
         self.grad = np.zeros_like(data)
 
+
+    def backward(self, gradient):
+        """
+        Accumulate gradients for this parameter.
+        
+        This method adds the incoming gradient to the existing gradient accumulator.
+        Gradient accumulation is essential for batch processing and for parameters
+        that are used multiple times in a single forward pass.
+        
+        Args:
+            gradient (np.ndarray): The gradient of the loss with respect to this
+                                parameter, computed during backpropagation.
+        
+        Example:
+            >>> param = Parameter(np.random.randn(10, 5))
+            >>> # During backward pass
+            >>> param.backward(computed_gradient)
+            >>> # Gradients are now stored in param.grad
+        """
+        if gradient.shape != self.data.shape:
+            raise ValueError(f"Gradient shape {gradient.shape} doesn't match parameter shape {self.data.shape}")
+        
+        self.grad += gradient.astype(np.float32)
+
     def zero_grad(self):
         """
         Reset the gradient of this parameter to zero.
