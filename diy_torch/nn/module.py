@@ -36,6 +36,18 @@ class Module:
         """
         self._parameters = {}
         self._modules = {}
+        self.training = True
+
+    def train(self, mode=True):
+        """Set module to training mode."""
+        self.training = mode
+        for module in self._modules.values():
+            module.train(mode)
+        return self
+    
+    def eval(self):
+        """Set module to training mode. No gradient updates will occur."""
+        return self.train(False)
 
     def forward(self, *inputs):
         """
