@@ -105,7 +105,6 @@ class Tanh(Module):
             raise ValueError("Must call forward() before backward()")
         
         # Tanh derivative: 1 - tanh²(x)
-        # Use stored output to avoid recomputing expensive hyperbolic tangent
         grad_input = grad_output * (1 - self.output**2)
         
         return grad_input

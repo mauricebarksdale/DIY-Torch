@@ -103,10 +103,8 @@ class Sigmoid(Module):
         if self.output is None:
             raise ValueError("Must call forward() before backward()")
         
-        # Sigmoid derivative: sigmoid(x) * (1 - sigmoid(x))
-        # Use stored output to avoid recomputing expensive exponentials
         grad_input = grad_output * self.output * (1 - self.output)
-        
+
         return grad_input
     
     def __repr__(self):

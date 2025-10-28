@@ -103,7 +103,6 @@ class Linear(Module):
         self.input = x  # Store input for backward pass
         output = x @ self.weight.data.T
         
-        # Add bias if present
         if self.bias is not None:
             output = output + self.bias.data
             
@@ -147,7 +146,6 @@ class Linear(Module):
         if self.input is None:
             raise ValueError("Must call forward() before backward()")
         
-        # Handle both batch and single sample cases
         if grad_output.ndim == 1:
             grad_output = grad_output.reshape(1, -1)
             single_sample = True

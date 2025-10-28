@@ -51,15 +51,12 @@ class SGD(Optimizer):
             >>> params = model.parameters()
             >>> optimizer = SGD(params, lr=0.001, momentum=0.9, weight_decay=1e-4)
         """
-        # Validate momentum
         if not (0 <= momentum < 1):
             raise ValueError(f"Momentum must be in [0, 1), got {momentum}")
         
-        # Validate weight decay
         if weight_decay < 0:
             raise ValueError(f"Weight decay must be non-negative, got {weight_decay}")
         
-        # Initialize base class with additional hyperparameters
         super().__init__(params, lr=lr, momentum=momentum, weight_decay=weight_decay)
         
         self.momentum = momentum
@@ -94,15 +91,13 @@ class SGD(Optimizer):
         """
         for param in self.params:
             if param.grad is None:
-                continue  # Skip parameters with no gradients
+                continue
             
-            grad = param.grad.copy()  # Work with a copy to avoid modifying original
+            grad = param.grad.copy()
             
-            # Apply weight decay (L2 regularization)
             if self.weight_decay > 0:
                 grad += self.weight_decay * param.data
             
-            # Apply momentum if specified
             if self.momentum > 0:
                 param_id = id(param)
                 if param_id not in self.state:
@@ -110,12 +105,7 @@ class SGD(Optimizer):
                     self.state[param_id] = {'velocity': np.zeros_like(param.data)}
                 
                 velocity = self.state[param_id]['velocity']
-                
-                # Update velocity: v = momentum * v + grad
-                velocity *= self.momentum
-                velocity += grad
-                
-                # Use velocity as the effective gradient
+                velocity = (velocity * self.momentum) + grad
                 grad = velocity
             
             # Update parameter: param = param - lr * grad
